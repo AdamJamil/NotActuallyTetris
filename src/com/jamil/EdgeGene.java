@@ -4,7 +4,9 @@ import it.unimi.dsi.util.XoRoShiRo128PlusRandom;
 import org.apache.commons.math3.random.GaussianRandomGenerator;
 import org.apache.commons.math3.random.MersenneTwister;
 
-class EdgeGene
+import java.io.Serializable;
+
+class EdgeGene implements Serializable
 {
     Edge edge;
     short incomingNode;

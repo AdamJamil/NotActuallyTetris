@@ -3,11 +3,12 @@ package com.jamil;
 import it.unimi.dsi.util.XoRoShiRo128PlusRandom;
 import org.apache.commons.math3.util.FastMath;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-class NeuralNetwork implements Comparable
+class NeuralNetwork implements Comparable, Serializable
 {
     //mutation probabilities, which are all hyperparameters
     private static final double mutationMultiplier = 1;

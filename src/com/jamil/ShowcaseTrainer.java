@@ -19,6 +19,8 @@ import it.unimi.dsi.util.XoRoShiRo128PlusRandom;
 
 class ShowcaseTrainer
 {
+    private boolean worst = false;
+
     private Timeline timeline;
     private static final int networksPerGeneration = 100;
 
@@ -53,8 +55,8 @@ class ShowcaseTrainer
 
     int movingPos = 3;
 
-    private static final int nodes = 5;
-    private static final int edges = 17;
+    private static final int nodes = 30;
+    private static final int edges = 800;
 
     private NeuralNetwork finalNet;
     private void initializePrimaryGeneration()
@@ -132,107 +134,27 @@ class ShowcaseTrainer
         currentBlock = ((int) (decider.nextDouble()*7))+1;
         nextBlock = ((int) (decider.nextDouble()*7))+1;
 
-        while (true)
+        try
         {
-            try
-            {
-                if (neuralNetwork.dead)
-                    generation[-1].fitness--;
+            FileInputStream file;
+            if (worst)
+                file = new FileInputStream("worst.dat");
+            else
+                file = new FileInputStream("best.dat");
+            ObjectInputStream in = new ObjectInputStream(file);
 
-                computeTopology();
+            finalNet = (NeuralNetwork) in.readObject();
 
-                if (movingPos < 0)
-                    movingPos = 0;
-
-                clearLines();
-
-                computeTopology();
-                double[] input = new double[]{topology[0], topology[1], topology[2], topology[3], topology[4], topology[5], topology[6], topology[7], topology[8], topology[9], -1, -1, -1, -1, -1, -1, -1};
-                input[currentBlock + 9] += 2;
-                double[] output = neuralNetwork.execute(input);
-                double max = -9999999f;
-                int index = -1;
-                for (int i = 0; i < 4; i++)
-                    if (output[i] > max)
-                    {
-                        max = output[i];
-                        index = i;
-                    }
-                orientation = index;
-                index = -1;
-                max = -9999999f;
-                for (int i = 4; i < output.length; i++)
-                    if (output[i] > max)
-                    {
-                        max = output[i];
-                        index = i;
-                    }
-                movingPos = index - 4;
-
-                tBlock(movingPos, orientation);
-                oBlock(movingPos);
-                iBlock(movingPos, orientation);
-                sBlock(movingPos, orientation);
-                zBlock(movingPos, orientation);
-                lBlock(movingPos, orientation);
-                rBlock(movingPos, orientation);
-                piecesDropped++;
-                currentBlock = nextBlock;
-                nextBlock = ((int) (decider.nextDouble() * 7)) + 1;
-            }
-            catch (ArrayIndexOutOfBoundsException e)
-            {
-                //e.printStackTrace();
-                neuralNetwork.fitness = piecesDropped + 4 * linesCleared;
-
-                decider.setSeed(0);
-                currentBlock = ((int) (decider.nextDouble() * 7)) + 1;
-                nextBlock = ((int) (decider.nextDouble() * 7)) + 1;
-                linesCleared = 0;
-                piecesDropped = 0;
-                for (int i = 0; i < field.length; i++)
-                    for (int j = 0; j < field[0].length; j++)
-                        field[i][j] = 0;
-                orientation = 0;
-                movingPos = 0;
-                for (int i = 0; i < topology.length; i++)
-                {
-                    tallest[i] = 0;
-                    topology[i] = 0;
-                }
-                fieldHeight = 0;
-
-                orderedNeuralNetworks.add(neuralNetwork);
-
-                currentNeuralNetworkIndex++;
-                if (currentNeuralNetworkIndex == 100)
-                {
-                    Collections.sort(orderedNeuralNetworks);
-                    currentNeuralNetworkIndex = 0;
-                    currentGeneration++;
-                    //System.out.println("generation: " + currentGeneration + ",  best: " + orderedNeuralNetworks.get(0).fitness);
-                    if (currentGeneration == 10000)
-                    {
-                        System.out.println("generation: " + currentGeneration + ",  best: " + orderedNeuralNetworks.get(0).fitness);
-                        System.exit(0);
-                    }
-
-                    if (orderedNeuralNetworks.get(0).fitness >= 10000)
-                    {
-                        finalNet = orderedNeuralNetworks.get(0);
-                        break;
-                    }
-
-                    createNextGeneration();
-                    orderedNeuralNetworks.clear();
-                }
-
-                neuralNetwork = generation[currentNeuralNetworkIndex];
-            }
+            in.close();
+            file.close();
+        }
+        catch(Exception e)
+        {
+            e.printStackTrace();
         }
 
         //simulation physics in this loop
-        KeyFrame frame = new KeyFrame(Duration.millis(1600f), (event) ->
+        KeyFrame frame = new KeyFrame(Duration.millis(800f), (event) ->
         {
             try
             {

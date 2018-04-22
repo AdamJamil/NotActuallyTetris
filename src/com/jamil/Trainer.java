@@ -41,6 +41,9 @@ class Trainer
     private int linesCleared = 0;
     private int piecesDropped = 0;
 
+    private NeuralNetwork best;
+    private NeuralNetwork worst;
+
     Color red = Color.RED;
     Color orange = Color.ORANGE;
     Color yellow = Color.YELLOW;
@@ -53,8 +56,8 @@ class Trainer
 
     int movingPos = 3;
 
-    private static final int nodes = 5;
-    int edges = -1;
+    private static final int nodes = 30;
+    int edges = 800;
 
     private NeuralNetwork finalNet;
     private void initializePrimaryGeneration()
@@ -110,11 +113,11 @@ class Trainer
             generation[i + 50] = orderedNeuralNetworks.get(i).mutate();
     }
 
-    Trainer(int edges, int inputs, int outputs)
+    Trainer(NeuralNetwork lastBest, int inputs, int outputs)
     {
         this.inputs = inputs;
         this.outputs = outputs;
-        this.edges = edges;
+        best = lastBest;
 
         initializePrimaryGeneration();
 
@@ -208,13 +211,50 @@ class Trainer
                     currentNeuralNetworkIndex = 0;
                     currentGeneration++;
                     //System.out.println("generation: " + currentGeneration + ",  best: " + orderedNeuralNetworks.get(0).fitness);
-                    if (currentGeneration == 10000)
+                    if (best == null || orderedNeuralNetworks.get(0).fitness > best.fitness)
+                        best = orderedNeuralNetworks.get(0);
+                    if (currentGeneration == 1)
+                        for (int i = 99; i >= 0; i--)
+                            if (orderedNeuralNetworks.get(i).fitness >= 10)
+                            {
+                                worst = orderedNeuralNetworks.get(i);
+                                break;
+                            }
+                    if (currentGeneration == 300)
                     {
-                        System.out.println(edges + ": " + orderedNeuralNetworks.get(0).fitness);
+                        try
+                        {
+                            //Saving of object in a file
+                            FileOutputStream file = new FileOutputStream("best.dat");
+                            ObjectOutputStream out = new ObjectOutputStream(file);
+
+                            // Method for serialization of object
+                            out.writeObject(best);
+
+                            out.close();
+                            file.close();
+                            System.out.println("saved fitness of " + best.fitness);
+                            //Saving of object in a file
+                            file = new FileOutputStream("worst.dat");
+                            out = new ObjectOutputStream(file);
+
+                            // Method for serialization of object
+                            out.writeObject(worst);
+
+                            out.close();
+                            file.close();
+                            System.out.println("saved fitness of " + worst.fitness);
+                        }
+
+                        catch(IOException ex)
+                        {
+                            ex.printStackTrace();
+                        }
+                        new Thread(() -> new Trainer(best, inputs, outputs)).start();
                         break;
                     }
 
-                    if (orderedNeuralNetworks.get(0).fitness >= 10000)
+                    if (orderedNeuralNetworks.get(0).fitness >= 100)
                     {
                         finalNet = orderedNeuralNetworks.get(0);
                         break;

@@ -1,6 +1,8 @@
 package com.jamil;
 
-class Edge extends Executable
+import java.io.Serializable;
+
+class Edge extends Executable implements Serializable
 {
     Node incomingNode;
     Node outgoingNode;

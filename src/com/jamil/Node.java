@@ -2,9 +2,10 @@ package com.jamil;
 
 import org.apache.commons.math3.util.FastMath;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-class Node extends Executable
+class Node extends Executable implements Serializable
 {
     ArrayList<Edge> outgoingEdges = new ArrayList<>();
 
